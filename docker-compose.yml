@@ -1,0 +1,33 @@
+services:
+  argus:
+    container_name: argus
+    image: argus:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    ports:
+      - "8081:8081"
+
+    environment:
+      # MCP Server Configuration
+      MCP_SERVER_HOST: 0.0.0.0
+      MCP_SERVER_PORT: 8081
+      LOG_LEVEL: INFO
+
+      # Free Plan Limits
+      DATA_FOR_SEARCH_FREE_PLAN_MAX_USAGE: ${DATA_FOR_SEARCH_FREE_PLAN_MAX_USAGE:-2000}
+      DATA_FOR_AI_FREE_PLAN_MAX_USAGE: ${DATA_FOR_AI_FREE_PLAN_MAX_USAGE:-2000}
+      DATA_FOR_SPELLCHECK_FREE_PLAN_MAX_USAGE: ${DATA_FOR_SPELLCHECK_FREE_PLAN_MAX_USAGE:-5000}
+      DATA_FOR_AUTOSUGGEST_FREE_PLAN_MAX_USAGE: ${DATA_FOR_AUTOSUGGEST_FREE_PLAN_MAX_USAGE:-5000}
+
+      # API Key for startup usage check (only Search key needed)
+      X_BRAVE_API_KEY_SEARCH: ${X_BRAVE_API_KEY_SEARCH}
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/ready"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+    restart: unless-stopped

@@ -1,0 +1,110 @@
+{
+  "mcpServers": {
+    "Argus": {
+      "type": "http",
+      "url": "http://localhost:8081/mcp",
+      "headers": {
+        "X-Brave-API-Key-Search": "your_data_for_search_api_key_here",
+        "X-Brave-API-Key-AI": "your_data_for_ai_api_key_here",
+        "X-Brave-API-Key-Autosuggest": "your_autosuggest_api_key_here",
+        "X-Brave-API-Key-Spellcheck": "your_spellcheck_api_key_here"
+      },
+      "metadata": {
+        "description": "Argus - Brave Search MCP Server with comprehensive search capabilities",
+        "version": "1.0.1",
+        "author": "Łukasz Bryzek",
+        "documentation": "https://github.com/IT-Square-Plus/Argus",
+        "features": [
+          "Web Search (Data for Search)",
+          "Enhanced Web Search with extra snippets (Data for AI)",
+          "Image Search",
+          "Video Search",
+          "News Search",
+          "Query Autocomplete (Autosuggest)",
+          "Spell Checking"
+        ],
+        "requirements": {
+          "brave_api_keys": {
+            "X-Brave-API-Key-Search": {
+              "required": true,
+              "plan": "Data for Search",
+              "description": "Required for search_web, search_images, search_videos, search_news",
+              "free_tier": "2000 requests/month, 1 req/sec",
+              "get_key": "https://api-dashboard.search.brave.com/app/keys"
+            },
+            "X-Brave-API-Key-AI": {
+              "required": false,
+              "plan": "Data for AI",
+              "description": "Optional for search_web_extra_snippets_for_ai (6x more context)",
+              "free_tier": "2000 requests/month, 1 req/sec",
+              "get_key": "https://api-dashboard.search.brave.com/app/keys",
+              "note": "Can use same key as Data for Search if you have both plans"
+            },
+            "X-Brave-API-Key-Autosuggest": {
+              "required": false,
+              "plan": "Autosuggest",
+              "description": "Optional for suggest tool (query autocomplete)",
+              "free_tier": "5000 requests/month, 5 req/sec",
+              "get_key": "https://api-dashboard.search.brave.com/app/keys"
+            },
+            "X-Brave-API-Key-Spellcheck": {
+              "required": false,
+              "plan": "Spellcheck",
+              "description": "Optional for spellcheck tool (query correction)",
+              "free_tier": "5000 requests/month, 5 req/sec",
+              "get_key": "https://api-dashboard.search.brave.com/app/keys"
+            }
+          },
+          "docker": {
+            "required": true,
+            "description": "Docker and Docker Compose for running Argus container",
+            "installation": "https://docs.docker.com/get-docker/"
+          }
+        },
+        "setup_instructions": [
+          "1. Before generating API keys, subscribe to free plans at: https://api-dashboard.search.brave.com/app/subscriptions/subscribe",
+          "2. Make sure you subscribe to Data for AI. Spellcheck and Suggest is also optional.",
+          "3. Get your Brave Search API keys from https://api-dashboard.search.brave.com/app/keys",
+          "4. Copy this file to .mcp.json: cp .mcp.json.example .mcp.json",
+          "5. Replace placeholder values with your actual API keys",
+          "6. Start Argus container: docker-compose up -d",
+          "7. Verify readiness: curl http://localhost:8081/ready",
+          "8. Check capabilities and API usage in the response",
+          "9. Restart Claude Code to load the MCP server"
+        ],
+        "health_endpoints": {
+          "/health": {
+            "type": "liveness_probe",
+            "description": "Quick check if service is alive (process running)",
+            "response": {
+              "status": "alive",
+              "service": "Argus",
+              "version": "1.0.0"
+            },
+            "use_case": "Basic monitoring, container restart decisions"
+          },
+          "/ready": {
+            "type": "readiness_probe",
+            "description": "Check if service is ready to accept requests (includes capabilities and API usage)",
+            "response_includes": [
+              "status: ready",
+              "capabilities: all available tools",
+              "usage: API quota for all plans (used/limit/remaining/percentage)"
+            ],
+            "use_case": "Deployment validation, load balancer health checks, detailed monitoring",
+            "recommended": true
+          }
+        },
+        "notes": [
+          "All API keys are provided via HTTP headers (not environment variables)",
+          "X-Brave-API-Key-Search is the ONLY required key for core functionality",
+          "Other keys are optional and enable additional features",
+          "You can use the same API key for multiple headers if you have multiple plans",
+          "Keys are sent per-request (not stored in container)",
+          "Use /ready endpoint to verify service is fully operational with API usage stats",
+          "Use /health endpoint only for basic liveness checks (faster, minimal info)"
+        ]
+      }
+    }
+  }
+}
